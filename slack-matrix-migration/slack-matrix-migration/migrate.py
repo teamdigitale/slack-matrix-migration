@@ -384,9 +384,8 @@ def migrate_users(userFile, config, access_token):
                 bar()
                 continue
 
-            _servername = config["homeserver"].split('/')[2]
             _matrix_user = user["name"]
-            _matrix_id = '@' + user["name"] + ':' + _servername
+            _matrix_id = '@' + user["name"] + ':' + config_yaml["domain"]
 
             # check if display name is set
             if "real_name" in user["profile"]:
