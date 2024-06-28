@@ -192,7 +192,7 @@ def login(server_location):
         log.info("Password cannot be blank.")
         sys.exit(1)
 
-    url = "%s/_matrix/client/r0/login" % (server_location,)
+    url = "%s/_matrix/client/v3/login" % (server_location,)
     data = {
         "type": "m.login.password",
         "user": admin_user,
@@ -217,7 +217,7 @@ def login(server_location):
 
 def getMaxUploadSize(config, access_token):
     # get maxUploadSize from Homeserver
-    url = "%s/_matrix/media/r0/config?access_token=%s" % (config_yaml["homeserver"],access_token,)
+    url = "%s/_matrix/media/v3/config?access_token=%s" % (config_yaml["homeserver"],access_token,)
     r = requests.get(url, verify=config["verify-ssl"])
 
     if r.status_code != 200:
@@ -292,7 +292,7 @@ def register_room(
             )
         )
     )
-    url = "%s/_matrix/client/r0/createRoom?user_id=%s" % (server_location,creator,)
+    url = "%s/_matrix/client/v3/createRoom?user_id=%s" % (server_location,creator,)
 
     body = {
         "preset": preset,
@@ -347,8 +347,8 @@ def autojoin_users(
     config,
 ):
     for user in invitees:
-        #POST /_matrix/client/r0/rooms/{roomId}/join
-        url = "%s/_matrix/client/r0/rooms/%s/join?user_id=%s" % (config["homeserver"],roomId,user,)
+        #POST /_matrix/client/v3/rooms/{roomId}/join
+        url = "%s/_matrix/client/v3/rooms/%s/join?user_id=%s" % (config["homeserver"],roomId,user,)
 
         #_log.info("Sending registration request...")
         try:
@@ -835,7 +835,7 @@ def kick_imported_users(server_location, admin_user, access_token, tick):
 
     with alive_bar(spinner = 'triangles', manual=True) as bar:
         for room in roomLUT.values():
-            url = "%s/_matrix/client/r0/rooms/%s/kick" % (server_location, room)
+            url = "%s/_matrix/client/v3/rooms/%s/kick" % (server_location, room)
 
             for name in nameLUT.keys():
                 data = {"user_id": name}

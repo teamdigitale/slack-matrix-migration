@@ -44,9 +44,9 @@ def send_event(
 ):
 
     if ts:
-        url = "%s/_matrix/client/r0/rooms/%s/send/%s/%s?user_id=%s&ts=%s" % (config["homeserver"],matrix_room,event_type,txnId,matrix_user_id,ts,)
+        url = "%s/_matrix/client/v3/rooms/%s/send/%s/%s?user_id=%s&ts=%s" % (config["homeserver"],matrix_room,event_type,txnId,matrix_user_id,ts,)
     else:
-        url = "%s/_matrix/client/r0/rooms/%s/send/%s/%s?user_id=%s" % (config["homeserver"],matrix_room,event_type,txnId,matrix_user_id,)
+        url = "%s/_matrix/client/v3/rooms/%s/send/%s/%s?user_id=%s" % (config["homeserver"],matrix_room,event_type,txnId,matrix_user_id,)
 
     #_log.info("Sending registration request...")
     
@@ -102,7 +102,7 @@ def invite_user(
         log.info("Invite {} to {}".format(matrix_user_id,roomId))
         _mxCreator = "".join(["@", config['admin_user'], ":", config["domain"]])
 
-        url = "%s/_matrix/client/r0/rooms/%s/invite?user_id=%s" % (config["homeserver"],roomId,_mxCreator,)
+        url = "%s/_matrix/client/v3/rooms/%s/invite?user_id=%s" % (config["homeserver"],roomId,_mxCreator,)
         body = {
             "user_id": matrix_user_id,
         }
