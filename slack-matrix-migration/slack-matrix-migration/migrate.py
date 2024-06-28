@@ -384,8 +384,8 @@ def migrate_users(userFile, config, access_token):
                 bar()
                 continue
 
-            _matrix_user = user["name"]
-            _matrix_id = '@' + user["name"] + ':' + config_yaml["domain"]
+            _matrix_user = 'slackimport_t6c27axe0_' + user["id"].lower()
+            _matrix_id = '@' + _matrix_user + ':' + config_yaml["domain"]
 
             # check if display name is set
             if "real_name" in user["profile"]:
@@ -395,13 +395,13 @@ def migrate_users(userFile, config, access_token):
 
             # check if email is set
             if "email" in user["profile"]:
-                _email = user["profile"]["email"]
+                _email = ""
             else:
                 _email = ""
 
             # generate password
             _alphabet = string.ascii_letters + string.digits
-            _password = ''.join(secrets.choice(_alphabet) for i in range(20)) # for a 20-character password
+            _password = ''.join(secrets.choice(_alphabet) for i in range(32)) # for a 20-character password
 
             userDetails = {
                 "slack_id": user["id"],
