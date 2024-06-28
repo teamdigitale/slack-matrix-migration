@@ -297,12 +297,14 @@ def register_room(
     body = {
         "preset": preset,
         "name": "".join([name, config_yaml["room-suffix"]]),
+        "room_alias_name": "".join([name, config_yaml["room-suffix"]]),
         "topic": topic,
         "creation_content": {
             "m.federate": config_yaml["federate-rooms"]
         },
         "invite": invitees,
         "is_direct": True if preset == "trusted_private_chat" else False,
+        "visibility": "public"
     }
 
     #_log.info("Sending registration request...")
