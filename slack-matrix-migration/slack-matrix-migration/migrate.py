@@ -304,7 +304,13 @@ def register_room(
         },
         "invite": invitees,
         "is_direct": True if preset == "trusted_private_chat" else False,
-        "visibility": "public"
+        "visibility": "public",
+        "power_level_content_override": {
+            "users": {
+                creator: 100,
+                f"@admin:{config_yaml['domain']}": 100
+            }
+        }
     }
 
     #_log.info("Sending registration request...")
@@ -456,7 +462,7 @@ def migrate_rooms(roomFile, config, admin_user):
                 else:
                     _mxCreator = "".join(["@", admin_user, ":", config_yaml["domain"]])
 
-            _invitees = []
+            _invitees = [f"@{admin_user}:{config_yaml['domain']}"]
             if config_yaml["invite-all"]:
                 for user in nameLUT.keys():
                     if user != _mxCreator:
@@ -467,7 +473,7 @@ def migrate_rooms(roomFile, config, admin_user):
                         if user in userLUT: # ignore dropped users like bots
                             _invitees.append(userLUT[user])
 
-            minimal_invites = []
+            minimal_invites = [f"@{admin_user}:{config_yaml['domain']}"]
             for user in channel["members"]:
                 if user != channel["creator"]:
                     if user in userLUT: # ignore dropped users like bots
