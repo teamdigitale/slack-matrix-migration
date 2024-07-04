@@ -794,8 +794,9 @@ def parse_and_send_message(config, message, matrix_room, txnId, is_later, log):
                 for reaction in message["reactions"]:
                     for user in reaction["users"]:
                         #log.info("Send reaction in room " + roomId)
-                        send_reaction(config, roomId, eventId, emojize(f":{reaction['name']}:", language='alias'), userLUT[user], txnId)
-                        txnId = txnId + 1
+                        if user in userLUT:
+                            send_reaction(config, roomId, eventId, emojize(f":{reaction['name']}:", language='alias'), userLUT[user], txnId)
+                            txnId = txnId + 1
 
     else:
         log.info("Ignoring message type " + message["type"])
