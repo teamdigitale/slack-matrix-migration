@@ -754,15 +754,10 @@ def parse_and_send_message(config, message, matrix_room, txnId, is_later, log):
             }
         else:
             replyEvent = threadLUT[message["parent_user_id"]+message["thread_ts"]]
-            fallbackHtml = getFallbackHtml(matrix_room, replyEvent);
-            fallbackText = getFallbackText(replyEvent);
-            body = fallbackText + "\n\n" + body
-            formatted_body = fallbackHtml + formatted_body
             content = {
                 "m.relates_to": {
-                    "m.in_reply_to": {
-                        "event_id": matrix_event_id,
-                    },
+                    "rel_type": "m.thread",
+                    "event_id": replyEvent["event_id"],
                 },
                 "msgtype": "m.text",
                 "body": body,
