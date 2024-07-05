@@ -590,14 +590,45 @@ def send_reaction(config, roomId, eventId, reactionKey, userId, txnId):
     return res
 
 def replace_mention(matchobj):
-    _slack_id = matchobj.group(0)[2:-1]
+    _slack_id = matchobj.group(1)
 
     if not _slack_id in userLUT:
         return ''
-    user_id = userLUT[_slack_id]
-    displayname = nameLUT[user_id]
+    _user_id = userLUT[_slack_id]
+    _display_name = nameLUT[_user_id]
 
-    return "<a href='https://matrix.to/#/" + user_id + "'>" + displayname + "</a>"
+    return _display_name
+
+def replace_html_mention(matchobj):
+    _slack_id = matchobj.group(1)
+
+    if not _slack_id in userLUT:
+        return ''
+    _user_id = userLUT[_slack_id]
+    _display_name = nameLUT[_user_id]
+
+    return f"<a href=\"https://matrix.to/#/{_user_id}\">{_display_name}</a>"
+
+def replace_room_mention(matchobj):
+    _room_id = matchobj.group(1)
+    
+    if _room_id in roomLUT2:
+        _display_name = roomLUT2[_room_id]
+    else:
+        _display_name = matchobj.group(3)
+
+    return f"#{_display_name}:{config_yaml['domain']}"
+
+def replace_html_room_mention(matchobj):
+    _room_id = matchobj.group(1)
+    
+    if _room_id in roomLUT2:
+        _display_name = roomLUT2[_room_id]
+    else:
+        _display_name = matchobj.group(3)
+  
+
+    return f"<a href=\"https://matrix.to/#/#{_display_name}:{config_yaml['domain']}\">#{_display_name}:{config_yaml['domain']}</a>"
 
 def getFallbackHtml(roomId, replyEvent):
     originalBody = replyEvent["body"]
@@ -685,7 +716,10 @@ def parse_and_send_message(config, message, matrix_room, txnId, is_later, log):
         body = body.replace("<!channel>", "@room");
         body = body.replace("<!here>", "@room");
         body = body.replace("<!everyone>", "@room");
-        body = re.sub('<@[A-Z0-9]+>', replace_mention, body)
+        formatted_body = re.sub('<@([A-Z0-9]+)>', replace_html_mention, body)
+        formatted_body = re.sub('<#([A-Z0-9]+)(\|(.+))?>', replace_html_room_mention, formatted_body)
+        body = re.sub('<@([A-Z0-9]+)>', replace_mention, body)
+        body = re.sub('<#([A-Z0-9]+)(\|(.+))?>', replace_room_mention, body)
 
         if "files" in message:
             if "subtype" in message:
@@ -741,9 +775,11 @@ def parse_and_send_message(config, message, matrix_room, txnId, is_later, log):
 
         # replace emojis
         body = emojize(body, language='alias')
+        formatted_body = emojize(formatted_body, language='alias')
 
         # TODO some URLs with special characters (e.g. _ ) are parsed wrong
-        formatted_body = slackdown.render(body)
+        formatted_body = slackdown.render(formatted_body)
+        formatted_body = re.sub('<i>t6c27axe0<\/i>', '_t6c27axe0_', formatted_body)
 
         if not is_reply:
             content = {
