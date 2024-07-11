@@ -315,7 +315,7 @@ def register_room(
 
     #_log.info("Sending registration request...")
     try:
-        r = requests.post(url, headers={'Authorization': 'Bearer ' + as_token}, json=body, verify=config["verify-ssl"], timeout=300 )
+        r = requests.post(url, headers={'Authorization': 'Bearer ' + as_token}, json=body, verify=config["verify-ssl"], timeout=1200 )
     # except requests.exceptions.Timeout:
     #     # Maybe set up for a retry, or continue in a retry loop
     # except requests.exceptions.TooManyRedirects:
