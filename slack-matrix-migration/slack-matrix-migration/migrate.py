@@ -843,7 +843,10 @@ def migrate_messages(fileList, matrix_room, config, tick, log):
 
     with alive_bar(bar = 'checks', spinner = 'waves2', manual=True) as bar:
         for file in fileList:
-            log.debug("prcessing file {}".format(file))
+            if file.endswith("canvas_in_the_conversation.json"):
+                log.debug("skipping file {}".format(file))
+                continue
+            log.debug("processing file {}".format(file))
             try:
                 fileData = archive.open(file)
                 messageData = json.load(fileData)
