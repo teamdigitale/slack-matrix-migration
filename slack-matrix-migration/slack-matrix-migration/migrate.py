@@ -28,6 +28,7 @@ import traceback
 import zipfile
 
 import requests
+import slack_sdk.models.blocks
 import slackdown
 import yaml
 from alive_progress import alive_bar
@@ -37,6 +38,8 @@ from emoji import emojize
 from files import process_attachments, process_files
 
 from utils import send_event, invite_user
+
+import render
 
 load_dotenv()
 
@@ -593,7 +596,7 @@ def replace_mention(matchobj):
     _slack_id = matchobj.group(1)
 
     if not _slack_id in userLUT:
-        return ''
+        return matchobj.group(0)
     _user_id = userLUT[_slack_id]
     _display_name = nameLUT[_user_id]
 
@@ -611,6 +614,9 @@ def replace_html_mention(matchobj):
 
 def replace_room_mention(matchobj):
     _room_id = matchobj.group(1)
+
+    if not _room_id in roomLUT:
+        return matchobj.group(0)
     
     if _room_id in roomLUT2:
         _display_name = roomLUT2[_room_id]
@@ -716,8 +722,8 @@ def parse_and_send_message(config, message, matrix_room, txnId, is_later, log):
         body = body.replace("<!channel>", "@room");
         body = body.replace("<!here>", "@room");
         body = body.replace("<!everyone>", "@room");
-        formatted_body = re.sub('<@([A-Z0-9]+)>', replace_html_mention, body)
-        formatted_body = re.sub('<#([A-Z0-9]+)(\|(.+))?>', replace_html_room_mention, formatted_body)
+        #formatted_body = re.sub('<@([A-Z0-9]+)>', replace_html_mention, body)
+        #formatted_body = re.sub('<#([A-Z0-9]+)(\|(.+))?>', replace_html_room_mention, formatted_body)
         body = re.sub('<@([A-Z0-9]+)>', replace_mention, body)
         body = re.sub('<#([A-Z0-9]+)(\|(.+))?>', replace_room_mention, body)
 
@@ -775,18 +781,17 @@ def parse_and_send_message(config, message, matrix_room, txnId, is_later, log):
 
         # replace emojis
         body = emojize(body, language='alias')
-        formatted_body = emojize(formatted_body, language='alias')
+        formatted_body = ""
+        #formatted_body = emojize(formatted_body, language='alias')
 
         # TODO some URLs with special characters (e.g. _ ) are parsed wrong
-        formatted_body = slackdown.render(formatted_body)
-        formatted_body = re.sub('<i>t6c27axe0<\/i>', '_t6c27axe0_', formatted_body)
-
+        #formatted_body = slackdown.render(formatted_body)
+        #formatted_body = re.sub('<i>t6c27axe0<\/i>', '_t6c27axe0_', formatted_body)
+  
         if not is_reply:
             content = {
                     "body": body,
                     "msgtype": "m.text",
-                    "format": "org.matrix.custom.html",
-                    "formatted_body": formatted_body,
             }
         else:
             replyEvent = threadLUT[message["parent_user_id"]+message["thread_ts"]]
@@ -797,9 +802,20 @@ def parse_and_send_message(config, message, matrix_room, txnId, is_later, log):
                 },
                 "msgtype": "m.text",
                 "body": body,
-                "format": "org.matrix.custom.html",
-                "formatted_body": formatted_body,
             }
+
+        if "blocks" in message:
+            rich_text_blocks = [b for b in message["blocks"] if b["type"] == "rich_text"]
+            if len(rich_text_blocks) > 0:
+                rich_text = slack_sdk.models.blocks.Block.parse(rich_text_blocks[0])
+                formatted_body = render.render(rich_text, {
+                    "userLUT": userLUT,
+                    "nameLUT": nameLUT,
+                    "roomLUT": roomLUT,
+                    "roomLUT2": roomLUT2,
+                })
+                content["format"] = "org.matrix.custom.html"
+                content["formatted_body"] = formatted_body
 
         # send message
         ts = message["ts"].replace(".", "")[:-3]

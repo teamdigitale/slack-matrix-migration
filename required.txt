@@ -4,3 +4,4 @@ emoji
 slackdown
 alive_progress
 python-dotenv
+slack_sdk
