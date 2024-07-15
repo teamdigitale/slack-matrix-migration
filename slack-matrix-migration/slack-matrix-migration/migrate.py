@@ -65,6 +65,7 @@ userLUT = {}
 nameLUT = {}
 roomLUT = {}
 roomLUT2 = {}
+roomMembers = {}
 dmLUT = {}
 eventLUT = {}
 threadLUT = {}
@@ -518,6 +519,7 @@ def migrate_rooms(roomFile, config, admin_user):
 
             roomLUT[roomDetails["slack_id"]] = roomDetails["matrix_id"]
             roomLUT2[roomDetails["slack_id"]] = roomDetails["slack_name"]
+            roomMembers[roomDetails["matrix_id"]] = _invitees
             roomlist.append(roomDetails)
             #time.sleep(1)
             bar()
@@ -896,7 +898,10 @@ def kick_imported_users(server_location, admin_user, access_token, tick):
         for room in roomLUT.values():
             url = "%s/_matrix/client/v3/rooms/%s/kick" % (server_location, room)
 
-            for name in nameLUT.keys():
+            for name in roomMembers[room]:
+                if name == f"@admin:{config_yaml['domain']}":
+                    continue
+
                 data = {"user_id": name}
 
                 try:
