@@ -885,7 +885,12 @@ def migrate_messages(fileList, matrix_room, config, tick, log):
 
     # process postponed messages
     for message in later:
-        txnId = parse_and_send_message(config, message, matrix_room, txnId, True, log)
+        try:
+            txnId = parse_and_send_message(config, message, matrix_room, txnId, True, log)
+        except:
+            log.error(
+                "Warning: Couldn't send (later) message: {} to matrix_room {} id:{}".format(message, matrix_room, txnId)
+            )
 
     # clean up postponed messages
     later = []

@@ -62,12 +62,18 @@ def send_event(
         return False
     else:
         if r.status_code != 200:
-            log.error("ERROR! Received %d %s" % (r.status_code, r.reason))
+            if r.status_code != 403:
+                log.error("ERROR! Received %d %s" % (r.status_code, r.reason))
             if r.status_code == 403:
                 invite_user(
                     matrix_room,
                     matrix_user_id,
-                    conf
+                    config
+                )
+                join_user(
+                    matrix_user_id,
+                    matrix_room,
+                    config,
                 )
                 try:
                     r = requests.put(url, headers={'Authorization': 'Bearer ' + config["as_token"]}, json=matrix_message, verify=config["verify-ssl"])
@@ -83,6 +89,7 @@ def send_event(
                     if r.status_code == 200:
                         return r
                     else:
+                        log.error("ERROR! Received %d %s" % (r.status_code, r.reason))
                         return False
         if 400 <= r.status_code < 500:
             try:
@@ -98,31 +105,57 @@ def invite_user(
     matrix_user_id,
     config,
 ):
-    if config["create-as-admin"]:
-        log.info("Invite {} to {}".format(matrix_user_id,roomId))
-        _mxCreator = "".join(["@", config['admin_user'], ":", config["domain"]])
+    log.info("Invite {} to {}".format(matrix_user_id,roomId))
+    _mxCreator = "".join(["@", config['admin_user'], ":", config["domain"]])
 
-        url = "%s/_matrix/client/v3/rooms/%s/invite?user_id=%s" % (config["homeserver"],roomId,_mxCreator,)
-        body = {
-            "user_id": matrix_user_id,
-        }
+    url = "%s/_matrix/client/v3/rooms/%s/invite?user_id=%s" % (config["homeserver"],roomId,_mxCreator,)
+    body = {
+        "user_id": matrix_user_id,
+    }
 
-        #_log.info("Sending registration request...")
-        try:
-            r = requests.post(url, headers={'Authorization': 'Bearer ' + config["as_token"]}, json=body, verify=config["verify-ssl"])
-        except requests.exceptions.RequestException as e:
-            # catastrophic error. bail.
-            log.error(
-                "Logging an uncaught exception {}".format(e),
-                exc_info=(traceback)
-            )
-            log.debug("error creating room {}".format(body))
-            return False
-        else:
-            if r.status_code != 200:
-                log.info("ERROR! Received %d %s" % (r.status_code, r.reason))
-                if 400 <= r.status_code < 500:
-                    try:
-                        log.info(r.json()["error"])
-                    except Exception:
-                        pass
+    #_log.info("Sending registration request...")
+    try:
+        r = requests.post(url, headers={'Authorization': 'Bearer ' + config["as_token"]}, json=body, verify=config["verify-ssl"])
+    except requests.exceptions.RequestException as e:
+        # catastrophic error. bail.
+        log.error(
+            "Logging an uncaught exception {}".format(e),
+            exc_info=(traceback)
+        )
+        log.debug("error creating room {}".format(body))
+        return False
+    else:
+        if r.status_code != 200:
+            log.info("ERROR! Received %d %s" % (r.status_code, r.reason))
+            if 400 <= r.status_code < 500:
+                try:
+                    log.info(r.json()["error"])
+                except Exception:
+                    pass
+
+def join_user(
+    user,
+    roomId,
+    config,
+):
+    #POST /_matrix/client/v3/rooms/{roomId}/join
+    url = "%s/_matrix/client/v3/rooms/%s/join?user_id=%s" % (config["homeserver"],roomId,user,)
+
+    #_log.info("Sending registration request...")
+    try:
+        r = requests.post(url, headers={'Authorization': 'Bearer ' + config["as_token"]}, verify=config["verify-ssl"])
+    except requests.exceptions.RequestException as e:
+        log.error(
+            "Logging an uncaught exception {}".format(e),
+            exc_info=(traceback)
+        )
+        # log.debug("error creating room {}".format(body))
+        return False
+    else:
+        if r.status_code != 200:
+            log.error("ERROR! Received %d %s" % (r.status_code, r.reason))
+            if 400 <= r.status_code < 500:
+                try:
+                    log.info(r.json()["error"])
+                except Exception:
+                    pass
