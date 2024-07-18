@@ -483,7 +483,7 @@ def migrate_rooms(roomFile, config, admin_user):
                     if user in userLUT: # ignore dropped users like bots
                         minimal_invites.append(userLUT[user])
 
-
+            archived_message = "**ARCHIVED** " if channel["is_archived"] else ""
 
             roomDetails = {
                 "slack_id": channel["id"],
@@ -495,7 +495,7 @@ def migrate_rooms(roomFile, config, admin_user):
                 "slack_creator": channel["creator"],
                 "matrix_id": '',
                 "matrix_creator": _mxCreator,
-                "matrix_topic": channel["topic"]["value"],
+                "matrix_topic": archived_message + channel["topic"]["value"],
             }
 
             room_preset = "private_chat" if config_yaml["import-as-private"] else "public_chat"
