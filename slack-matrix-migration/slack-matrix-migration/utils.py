@@ -65,11 +65,11 @@ def send_event(
             if r.status_code != 403:
                 log.error("ERROR! Received %d %s" % (r.status_code, r.reason))
             if r.status_code == 403:
-                invite_user(
-                    matrix_room,
-                    matrix_user_id,
-                    config
-                )
+                #invite_user(
+                #    matrix_room,
+                #    matrix_user_id,
+                #    config
+                #)
                 join_user(
                     matrix_user_id,
                     matrix_room,
