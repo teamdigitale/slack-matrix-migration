@@ -66,6 +66,9 @@ def renderChannel(e: RichTextElementParts.Channel, luts) -> str:
         ret = addStyle(ret, e.style)
     return ret
 
+def renderBroadcast(e: RichTextElementParts.Broadcast) -> str:
+    return '@room'
+
 def renderRichTextSection(e: RichTextSectionElement, luts) -> str:
     ret = "<p>"
 
@@ -78,6 +81,8 @@ def renderRichTextElement(e: RichTextElement, luts) -> str:
     ret = ""
 
     match e.type:
+        case "broadcast":
+            ret += renderBroadcast(e)
         case "channel":
             ret += renderChannel(e, luts)
         case "emoji":
